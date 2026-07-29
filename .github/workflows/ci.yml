@@ -1,0 +1,94 @@
+name: C/ASM CI
+
+on:
+  push:
+    branches: [ "main" ]
+    tags:    # релизы создаются при push тега вида v*
+      - 'v*'
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v6
+      with:
+        submodules: 'recursive' # Важно для подключения bignum-common
+
+    - name: Install build dependencies
+      run: sudo apt-get update && sudo apt-get install -y build-essential yasm cppcheck 
+
+    - name: Build project (Release)
+      run: make build CONFIG=release
+    
+    - name: Run static analysis
+      run: make lint      
+
+    - name: Run unit tests (Release)
+      run: make test CONFIG=release
+
+    - name: Install build dependencies
+      run: sudo apt-get update && sudo apt-get install -y build-essential yasm
+    
+    - name: Create distribution
+      run: make dist
+
+    - name: Upload dist artifact
+      uses: actions/upload-artifact@v7
+      with:
+        name: dist
+        path: dist
+
+    - name: Download dist artifact
+      uses: actions/download-artifact@v7
+      with:
+        name: dist
+        path: dist
+
+    - name: Pack dist
+      id: dist
+      run: |
+        ARCHIVE="lib-${{ github.event.repository.name }}-${{ github.ref_name }}.tar.gz"
+        tar -C dist -czf "$ARCHIVE" .
+        echo "archive=$ARCHIVE" >> $GITHUB_OUTPUT
+
+  release:
+    needs: build-and-test
+    runs-on: ubuntu-latest
+    permissions:
+        contents: write    
+    if: startsWith(github.ref, 'refs/tags/v')   # только для тегов вида v*
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v6
+      with:
+        submodules: 'recursive'
+
+    - name: Install build dependencies
+      run: sudo apt-get update && sudo apt-get install -y build-essential yasm
+
+    - name: Download dist artifact
+      uses: actions/download-artifact@v7
+      with:
+        name: dist
+        path: dist
+
+    - name: Pack dist
+      id: dist
+      run: |
+        ARCHIVE="lib-${{ github.event.repository.name }}-${{ github.ref_name }}.tar.gz"
+        tar -C dist -czf "$ARCHIVE" .
+        echo "archive=$ARCHIVE" >> $GITHUB_OUTPUT
+
+    - name: Create Release and Upload Asset via CLI
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        gh release create ${{ github.ref_name }} \
+          --title "${{ github.ref_name }}" \
+          --notes "Release for ${{ github.ref_name }}" \
+          ${{ steps.dist.outputs.archive }}
+
