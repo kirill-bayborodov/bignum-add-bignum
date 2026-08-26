@@ -8,29 +8,15 @@
  */
 
 #include "bignum_add_bignum.h"
-#include <bignum_common.h>
+#include <bignum_cmp.h>
+#include <bignum_init.h>
+#include <bignum_init_from_array.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
 #include <unistd.h>
 
-#define BIGNUM_CMP_GREATER     1
-#define BIGNUM_CMP_EQ          0
-#define BIGNUM_CMP_LESS       -1
-#define BIGNUM_CMP_ERROR_NULL (int)0x80000000
-
-int bignum_cmp(const bignum_t* a, const bignum_t* b) {
-    if (!a || !b) return BIGNUM_CMP_ERROR_NULL;
-    if (a->len != b->len) return (a->len > b->len) ? BIGNUM_CMP_GREATER : BIGNUM_CMP_LESS;
-    if (a->len == 0) return BIGNUM_CMP_EQ;
-    for (size_t i = a->len; i > 0; --i) {
-        uint64_t word_a = a->words[i - 1];
-        uint64_t word_b = b->words[i - 1];
-        if (word_a != word_b) return (word_a > word_b) ? BIGNUM_CMP_GREATER : BIGNUM_CMP_LESS;
-    }
-    return BIGNUM_CMP_EQ;
-}
 
 #define RUN_TEST(test_func) \
     do { \
