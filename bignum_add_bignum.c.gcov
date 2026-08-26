@@ -1,0 +1,138 @@
+        -:    0:Source:src/bignum_add_bignum.c
+        -:    0:Graph:build/bignum_add_bignum.gcno
+        -:    0:Data:build/bignum_add_bignum.gcda
+        -:    0:Runs:5
+        -:    1:/**
+        -:    2: * @file    bignum_add_bignum.c
+        -:    3: * @author  git@bayborodov.com
+        -:    4: * @version 1.0.0
+        -:    5: * @date    29.07.2026
+        -:    6: *
+        -:    7: * @brief   Эталонная реализация сложения больших беззнаковых целых чисел на C11.
+        -:    8: */
+        -:    9:
+        -:   10:#include "bignum_add_bignum.h"
+        -:   11:
+        -:   12:/**
+        -:   13: * @brief Внутренняя функция для проверки недопустимого перекрытия буферов.
+        -:   14: *
+        -:   15: * @param[in] res Указатель на буфер результата.
+        -:   16: * @param[in] op  Указатель на входной буфер (операнд).
+        -:   17: * @return 1 если есть частичное перекрытие, 0 если всё в порядке или это in-place.
+        -:   18: */
+        -:   19:static inline int check_buffer_overlap(const bignum_t *res, const bignum_t *op) {
+  1563079:   20:    if (res == op) {
+branch  0 taken 781539 (fallthrough)
+branch  1 taken 2
+branch  2 taken 781539 (fallthrough)
+branch  3 taken 1
+        -:   21:        return 0; // In-place операция (result == a или result == b) разрешена
+        -:   22:    }
+        -:   23:    
+        -:   24:    const unsigned char *p_res = (const unsigned char *)res;
+        -:   25:    const unsigned char *p_op  = (const unsigned char *)op;
+        -:   26:
+        -:   27:    // Проверяем пересечение диапазонов памяти
+  1563078:   28:    if ((p_res < p_op + sizeof(bignum_t)) && (p_op < p_res + sizeof(bignum_t))) {
+branch  0 taken 759428 (fallthrough)
+branch  1 taken 22111
+branch  2 taken 759427 (fallthrough)
+branch  3 taken 1
+branch  4 taken 761827 (fallthrough)
+branch  5 taken 19712
+branch  6 taken 761827 (fallthrough)
+branch  7 taken 0
+        -:   29:        return 1;
+        -:   30:    }
+        -:   31:    return 0;
+        -:   32:}
+        -:   33:
+function bignum_add_bignum called 781547 returned 100% blocks executed 100%
+   781547:   34:bignum_add_bignum_status_t bignum_add_bignum(bignum_t *result, const bignum_t *a, const bignum_t *b) {
+        -:   35:    // 1. Валидация указателей
+   781547:   36:    if (!result || !a || !b) {
+branch  0 taken 781545 (fallthrough)
+branch  1 taken 2
+branch  2 taken 781544 (fallthrough)
+branch  3 taken 1
+        -:   37:        return BIGNUM_ADD_BIGNUM_ERROR_NULL_PTR;
+        -:   38:    }
+        -:   39:
+        -:   40:    // 2. Проверка длины
+   781544:   41:    if (a->len > BIGNUM_CAPACITY || b->len > BIGNUM_CAPACITY) {
+branch  0 taken 781542 (fallthrough)
+branch  1 taken 2
+branch  2 taken 781541 (fallthrough)
+branch  3 taken 1
+        -:   42:        return BIGNUM_ADD_BIGNUM_ERROR_CAPACITY_EXCEEDED;
+        -:   43:    }
+        -:   44:
+        -:   45:    // 3. Проверка перекрытия буферов
+        -:   46:    if (check_buffer_overlap(result, a) || check_buffer_overlap(result, b)) {
+        -:   47:        return BIGNUM_ADD_BIGNUM_ERROR_BUFFER_OVERLAP;
+        -:   48:    }
+        -:   49:
+        -:   50:    // 4. Подготовка к сложению
+   781540:   51:    size_t min_len = (a->len < b->len) ? a->len : b->len;
+   781540:   52:    size_t max_len = (a->len > b->len) ? a->len : b->len;
+   781540:   53:    const bignum_t *longest = (a->len > b->len) ? a : b;
+branch  0 taken 10328 (fallthrough)
+branch  1 taken 771212
+        -:   54:
+        -:   55:    uint64_t carry = 0;
+        -:   56:    size_t i = 0;
+        -:   57:
+        -:   58:    // Сложение общей части (до min_len)
+  1393202:   59:    for (; i < min_len; i++) {
+branch  0 taken 611662
+branch  1 taken 781540
+   611662:   60:        uint64_t w_a = a->words[i];
+   611662:   61:        uint64_t w_b = b->words[i];
+        -:   62:        
+   611662:   63:        uint64_t sum = w_a + w_b;
+   611662:   64:        uint64_t carry1 = (sum < w_a) ? 1 : 0; // Переполнение при сложении a + b
+        -:   65:        
+   611662:   66:        uint64_t res = sum + carry;
+   611662:   67:        uint64_t carry2 = (res < sum) ? 1 : 0; // Переполнение при добавлении carry
+        -:   68:        
+   611662:   69:        result->words[i] = res;
+   611662:   70:        carry = carry1 | carry2;
+        -:   71:    }
+        -:   72:
+        -:   73:    // 5. Обработка хвоста более длинного числа
+  1501690:   74:    for (; i < max_len; i++) {
+branch  0 taken 720150
+branch  1 taken 781540 (fallthrough)
+   720150:   75:        uint64_t w = longest->words[i];
+   720150:   76:        uint64_t res = w + carry;
+        -:   77:        
+   720150:   78:        carry = (res < w) ? 1 : 0;
+   720150:   79:        result->words[i] = res;
+        -:   80:    }
+        -:   81:
+        -:   82:    // 6. Обработка финального переноса (переполнение)
+   781540:   83:    if (carry) {
+branch  0 taken 3 (fallthrough)
+branch  1 taken 781537
+        3:   84:        if (max_len == BIGNUM_CAPACITY) {
+branch  0 taken 2 (fallthrough)
+branch  1 taken 1
+        -:   85:            return BIGNUM_ADD_BIGNUM_ERROR_OVERFLOW;
+        -:   86:        }
+        2:   87:        result->words[i] = 1;
+        2:   88:        max_len++;
+        -:   89:    }
+        -:   90:
+        -:   91:    // 7. Нормализация результата (на случай, если складывали нули)
+   781539:   92:    while (max_len > 0 && result->words[max_len - 1] == 0) {
+branch  0 taken 540680 (fallthrough)
+branch  1 taken 224774
+branch  2 taken -16085
+branch  3 taken 556765 (fallthrough)
+        -:   93:        max_len--;
+        -:   94:    }
+   781539:   95:    result->len = max_len;
+        -:   96:
+   781539:   97:    return BIGNUM_ADD_BIGNUM_SUCCESS;
+        -:   98:}
+        -:   99:
