@@ -4,7 +4,7 @@
  * @version 1.0.0
  * @date    29.07.2026
  *
- * @brief   Детерминированные тесты для модуля bignum_add_bignum.
+ * @brief   Deterministic tests for the bignum_add_bignum module.
  */
 
 #include "bignum_add_bignum.h"
@@ -34,7 +34,7 @@
 static int tests_passed = 0;
 static int tests_failed = 0;
 
-// --- Тесты на "счастливые пути" ---
+// --- Happy-path tests. ---
 
 int test_simple_add(void) {
     bignum_t a, b, result, expected;
@@ -83,7 +83,7 @@ int test_add_different_lengths(void) {
 
     bignum_add_bignum_status_t status1 = bignum_add_bignum(&result, &a, &b);
     
-    // Проверяем коммутативность (b + a)
+    // Verify commutativity (b + a).
     bignum_t result2;
     bignum_init(&result2);
     bignum_add_bignum_status_t status2 = bignum_add_bignum(&result2, &b, &a);
@@ -93,7 +93,7 @@ int test_add_different_lengths(void) {
            bignum_cmp(&result2, &expected) == BIGNUM_CMP_EQ;
 }
 
-// --- Тесты на граничные случаи и нормализацию ---
+// --- Boundary and normalization tests. ---
 
 int test_add_zeros(void) {
     bignum_t a, b, result, expected;
@@ -127,7 +127,7 @@ int test_in_place_add(void) {
            status2 == BIGNUM_ADD_BIGNUM_SUCCESS && bignum_cmp(&b, &expected_b) == BIGNUM_CMP_EQ;
 }
 
-// --- Тесты на обработку ошибок ---
+// --- Error-handling tests. ---
 
 int test_err_null_pointer(void) {
     bignum_t a, b, result;
@@ -147,9 +147,9 @@ int test_err_capacity_exceeded(void) {
     bignum_init_from_array(&a, (uint64_t[]){1}, 1);
     bignum_init_from_array(&b, (uint64_t[]){1}, 1);
     
-    a.len = BIGNUM_CAPACITY + 1; // Искусственно портим длину
+    a.len = BIGNUM_CAPACITY + 1; // Deliberately corrupt the logical length.
     bignum_add_bignum_status_t status = bignum_add_bignum(&result, &a, &b);
-    a.len = 1; // Восстанавливаем
+    a.len = 1; // Restore the fixture.
     return status == BIGNUM_ADD_BIGNUM_ERROR_CAPACITY_EXCEEDED;
 }
 
@@ -159,7 +159,7 @@ int test_err_buffer_overlap(void) {
     bignum_init_from_array(&a, (uint64_t[]){10}, 1);
     bignum_init_from_array(&b, (uint64_t[]){5}, 1);
     
-    // Создаем указатель, который частично перекрывает a
+    // Create a pointer that partially overlaps a.
     bignum_t *overlap_res = (bignum_t *)((unsigned char *)&a + 1);
     return bignum_add_bignum(overlap_res, &a, &b) == BIGNUM_ADD_BIGNUM_ERROR_BUFFER_OVERLAP;
 }
@@ -176,7 +176,7 @@ int test_err_overflow(void) {
     bignum_init_from_array(&a, arr_a, BIGNUM_CAPACITY);
     bignum_init_from_array(&b, (uint64_t[]){1}, 1);
 
-    // Сложение должно вызвать перенос за пределы BIGNUM_CAPACITY
+    // The addition must carry beyond BIGNUM_CAPACITY.
     bignum_add_bignum_status_t status = bignum_add_bignum(&result, &a, &b);
     return status == BIGNUM_ADD_BIGNUM_ERROR_OVERFLOW;
 }

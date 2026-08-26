@@ -1,10 +1,10 @@
 /**
  * @file bench_bignum_add_bignum_mt.c
- * @brief Multi-thread benchmark-framework entrypoint for bignum subtraction.
+ * @brief Multi-thread benchmark-framework entrypoint for bignum addition.
  */
 #include <stdlib.h>
 #include <benchmark_framework.h>
-#include "adapter/bignum_add_bignum_benchmark_adapter.h"
+#include "bignum_add_bignum_benchmark_adapter.h"
 
 int main(int argc, char **argv)
 {

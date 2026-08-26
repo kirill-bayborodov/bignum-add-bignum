@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "description": "Standard deterministic regression matrix for the in-place bignum_add_bignum unsigned subtraction operation.",
+  "description": "Standard deterministic regression matrix for the bignum_add_bignum unsigned addition operation.",
   "profiles": [
     {
       "id": "zero-one-end-to-end",
@@ -11,7 +11,7 @@
       "capacity_profile": "normal"
     },
     {
-      "id": "nonzero-one-subtract-kernel",
+      "id": "nonzero-one-add-kernel",
       "input_kind": "nonzero",
       "operation_kind": "add",
       "measure_mode": "kernel-only",
@@ -19,7 +19,7 @@
       "capacity_profile": "normal"
     },
     {
-      "id": "nonzero-quarter-word-kernel",
+      "id": "nonzero-quarter-add-kernel",
       "input_kind": "nonzero",
       "operation_kind": "add",
       "measure_mode": "kernel-only",
@@ -51,7 +51,7 @@
       "capacity_profile": "normal"
     },
     {
-      "id": "nonzero-near-capacity-subtract-kernel",
+      "id": "nonzero-near-capacity-add-kernel",
       "input_kind": "nonzero",
       "operation_kind": "add",
       "measure_mode": "kernel-only",
@@ -59,7 +59,7 @@
       "capacity_profile": "near-capacity"
     },
     {
-      "id": "nonzero-near-capacity-subtract-end-to-end",
+      "id": "nonzero-near-capacity-add-end-to-end",
       "input_kind": "nonzero",
       "operation_kind": "add",
       "measure_mode": "end-to-end",

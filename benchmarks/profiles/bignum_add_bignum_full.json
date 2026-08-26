@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "description": "Full domain-specific matrix for reproducible bignum_add_bignum left-subtract test benchmarking, including operand length and near-capacity scenarios.",
+  "description": "Full domain-specific matrix for reproducible bignum_add_bignum addition benchmarking, including operand length and near-capacity scenarios.",
   "profiles": [
     {
       "id": "zero-one-end-to-end",
@@ -19,7 +19,7 @@
       "capacity_profile": "normal"
     },
     {
-      "id": "nonzero-one-subtract-kernel",
+      "id": "nonzero-one-add-kernel",
       "input_kind": "nonzero",
       "operation_kind": "add",
       "measure_mode": "kernel-only",
@@ -27,7 +27,7 @@
       "capacity_profile": "normal"
     },
     {
-      "id": "nonzero-quarter-subtract-kernel",
+      "id": "nonzero-quarter-add-kernel",
       "input_kind": "nonzero",
       "operation_kind": "add",
       "measure_mode": "kernel-only",
@@ -35,7 +35,7 @@
       "capacity_profile": "normal"
     },
     {
-      "id": "nonzero-quarter-word-kernel",
+      "id": "nonzero-quarter-add-kernel-alt",
       "input_kind": "nonzero",
       "operation_kind": "add",
       "measure_mode": "kernel-only",
@@ -43,7 +43,7 @@
       "capacity_profile": "normal"
     },
     {
-      "id": "nonzero-half-word-kernel",
+      "id": "nonzero-half-add-kernel",
       "input_kind": "nonzero",
       "operation_kind": "add",
       "measure_mode": "kernel-only",
@@ -75,7 +75,7 @@
       "capacity_profile": "normal"
     },
     {
-      "id": "near-capacity-subtract-kernel",
+      "id": "near-capacity-add-kernel",
       "input_kind": "nonzero",
       "operation_kind": "add",
       "measure_mode": "kernel-only",
@@ -83,7 +83,7 @@
       "capacity_profile": "near-capacity"
     },
     {
-      "id": "near-capacity-subtract-end-to-end",
+      "id": "near-capacity-add-end-to-end",
       "input_kind": "nonzero",
       "operation_kind": "add",
       "measure_mode": "end-to-end",
@@ -91,7 +91,7 @@
       "capacity_profile": "near-capacity"
     },
     {
-      "id": "near-capacity-word-kernel",
+      "id": "near-capacity-add-kernel-alt",
       "input_kind": "nonzero",
       "operation_kind": "add",
       "measure_mode": "kernel-only",

@@ -1,6 +1,6 @@
 /**
  * @file bench_bignum_add_bignum.c
- * @brief Single-thread benchmark-framework entrypoint for bignum subtraction.
+ * @brief Single-thread benchmark-framework entrypoint for bignum addition.
  */
 #include <benchmark_framework.h>
 #include "bignum_add_bignum_benchmark_adapter.h"

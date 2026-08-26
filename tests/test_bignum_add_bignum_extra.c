@@ -4,7 +4,7 @@
  * @version 1.0.0
  * @date    29.07.2026
  *
- * @brief   Дополнительные тесты (фаззинг и надежность) для bignum_add_bignum.
+ * @brief   Extended fuzzing and robustness tests for bignum_add_bignum.
  */
 
 #include "bignum_add_bignum.h"
@@ -76,14 +76,14 @@ int test_fuzzing_robustness(void) {
         bignum_t a, b, res1, res2;
         bignum_init(&a); bignum_init(&b); bignum_init(&res1); bignum_init(&res2);
 
-        // Ограничиваем длину, чтобы избежать частых переполнений
+        // Keep lengths below capacity to avoid frequent intentional overflows.
         a.len = rand() % BIGNUM_CAPACITY;
         b.len = rand() % BIGNUM_CAPACITY;
 
         for (size_t j = 0; j < a.len; ++j) a.words[j] = ((uint64_t)rand() << 32) | rand();
         for (size_t j = 0; j < b.len; ++j) b.words[j] = ((uint64_t)rand() << 32) | rand();
 
-        // Нормализация
+        // Normalize generated inputs.
         while (a.len > 0 && a.words[a.len - 1] == 0) a.len--;
         while (b.len > 0 && b.words[b.len - 1] == 0) b.len--;
 
@@ -91,12 +91,12 @@ int test_fuzzing_robustness(void) {
         bignum_add_bignum_status_t st2 = bignum_add_bignum(&res2, &b, &a);
 
         if (st1 == BIGNUM_ADD_BIGNUM_SUCCESS) {
-            // 1. Коммутативность: a + b == b + a
+            // 1. Commutativity: a + b == b + a.
             if (st2 != BIGNUM_ADD_BIGNUM_SUCCESS || bignum_cmp(&res1, &res2) != BIGNUM_CMP_EQ) {
                 fprintf(stderr, "Fuzzing failed: Commutativity broken\n");
                 return 0;
             }
-            // 2. Монотонность: res >= a и res >= b
+            // 2. Monotonicity: res >= a and res >= b.
             if (bignum_cmp(&res1, &a) == BIGNUM_CMP_LESS || bignum_cmp(&res1, &b) == BIGNUM_CMP_LESS) {
                 fprintf(stderr, "Fuzzing failed: Result is smaller than operands\n");
                 print_bignum("a", &a);
@@ -109,12 +109,34 @@ int test_fuzzing_robustness(void) {
     return 1;
 }
 
+int test_error_is_transactional(void) {
+    bignum_t a, b, result, before;
+    bignum_init_from_array(&a, (uint64_t[]){1}, 1);
+    bignum_init_from_array(&b, (uint64_t[]){2}, 1);
+    bignum_init_from_array(&result, (uint64_t[]){0xA5A5A5A5A5A5A5A5ULL, 7}, 2);
+    before = result;
+
+    a.len = BIGNUM_CAPACITY + 1;
+    bignum_add_bignum_status_t capacity_status = bignum_add_bignum(&result, &a, &b);
+    a.len = 1;
+    if (capacity_status != BIGNUM_ADD_BIGNUM_ERROR_CAPACITY_EXCEEDED ||
+        memcmp(&result, &before, sizeof(result)) != 0) {
+        return 0;
+    }
+
+    bignum_t *overlap_result = (bignum_t *)((unsigned char *)&a + 1);
+    bignum_add_bignum_status_t overlap_status = bignum_add_bignum(overlap_result, &a, &b);
+    return overlap_status == BIGNUM_ADD_BIGNUM_ERROR_BUFFER_OVERLAP &&
+           memcmp(&result, &before, sizeof(result)) == 0;
+}
+
 int main() {
     printf("\n--- Launching Extra Tests for bignum_add_bignum  ---\n");
 
     printf("\n--- Running Robustness Tests ---\n");
     RUN_TEST(test_robustness_a_len_exceeds_capacity);
     RUN_TEST(test_robustness_b_len_exceeds_capacity);
+    RUN_TEST(test_error_is_transactional);
 
     printf("\n--- Running Fuzzing Test ---\n");
     RUN_TEST(test_fuzzing_robustness);
