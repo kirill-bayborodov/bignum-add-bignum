@@ -168,7 +168,6 @@ static uint64_t checksum(const void *opaque, uint64_t iteration, void *context)
 
 /**
  * @brief Validates the generic workload vocabulary accepted by addition.
- * @param[in] workload Borrowed framework workload descriptor.
  * @return Named adapter validation status; the descriptor is never modified.
  */
 bignum_add_bignum_benchmark_status_t bignum_add_bignum_benchmark_validate_workload(
@@ -188,7 +187,6 @@ bignum_add_bignum_benchmark_status_t bignum_add_bignum_benchmark_validate_worklo
 
 /**
  * @brief Installs addition callbacks into a framework adapter.
- * @param[out] adapter Caller-allocated adapter structure.
  * @return Named adapter status; no allocation or ownership transfer occurs.
  */
 bignum_add_bignum_benchmark_status_t bignum_add_bignum_benchmark_adapter_init(benchmark_adapter_t *adapter)

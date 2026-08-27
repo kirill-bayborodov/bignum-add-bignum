@@ -36,10 +36,6 @@ static inline int check_buffer_overlap(const bignum_t *result,
  * writing. It adds the common words with carry, processes the longer tail,
  * reports a final carry as overflow when capacity is exhausted, normalizes the
  * logical length, and publishes the final length only after successful work.
- * @param[out] result Caller-owned destination; exact aliasing is allowed and
- *                    partial overlap is rejected.
- * @param[in] a Caller-owned first operand.
- * @param[in] b Caller-owned second operand.
  * @return A named bignum_add_bignum_status_t value; error paths leave result
  *         unchanged.
  */
