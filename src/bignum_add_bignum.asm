@@ -282,3 +282,5 @@ bignum_add_bignum:
     pop     r12
     pop     rbp
     ret
+    
+section .note.GNU-stack noalloc noexec nowrite progbits
